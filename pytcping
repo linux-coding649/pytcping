@@ -1,0 +1,67 @@
+#!/usr/bin/python3
+import time
+import socket
+import sys
+from decimal import Decimal
+import struct
+
+try:
+    iporfqdn = sys.argv[1]
+    tcport = sys.argv[2]
+except IndexError:
+    iporfqdn = input('IP(v4) address or FQDN: ')
+    tcport = input('TCP port to connect to: ')
+try:
+    tcport = int(tcport)
+except ValueError:
+    print('The TCP port is not a number.')
+    sys.exit(1)
+
+ping_count = 0
+error_count = 0
+times = []
+l_onoff = 1
+l_linger = 0
+
+print('To stop, do ctrl-c')
+print('Connecting to (pinging) '+iporfqdn+':'+str(tcport)+' ...')
+while True:
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(10)
+        ping_count += 1
+        start = time.perf_counter() * 1000
+        try:
+            s.connect((iporfqdn, tcport))
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', l_onoff, l_linger))
+        except OverflowError:
+            print('TCP port out of range. No such port.')
+            sys.exit(0)
+        except socket.gaierror:
+            print('Error resolving FQDN, NXDOMAIN.')
+            sys.exit(0)
+        except socket.timeout:
+            error_count += 1
+            print('Request Timed Out '+iporfqdn+':'+str(tcport)+' err='+str(error_count))
+            time.sleep(1)
+            continue
+        except OSError:
+            error_count += 1
+            print('No Route To Host / TCP Port Not Open '+iporfqdn+':'+str(tcport)+' err='+str(error_count))
+            continue
+        end = time.perf_counter() * 1000
+        connectime = round(Decimal(end), 2) - round(Decimal(start), 2)
+        print('Connected to '+iporfqdn+':'+str(tcport)+' tcp_seq='+str(ping_count)+' time='+str(connectime)+' ms')
+        s.close()
+        times.append(connectime)
+        time.sleep(1)
+    except KeyboardInterrupt:
+        print('\n')
+        print('------------ PyTCPING Results ------------')
+        print('host='+iporfqdn+' port='+str(tcport))
+        try:
+            print('times min/avg/max/pings '+str(min(times))+'ms/'+str(round(Decimal(sum(times)/len(times)), 2))+'ms/'+str(max(times))+'ms/'+str(len(times)))
+        except ValueError:
+            print('times min/avg/max/pings None/None/None/0')
+        print('errors '+str(error_count))
+        sys.exit(0)
