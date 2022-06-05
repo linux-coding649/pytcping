@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+
+# This is only for Linux systems.
+# It is recommended for Debian 11.x, Raspberry Pi x and Kali Linux 2022.x
 import time
 import socket
 import sys
