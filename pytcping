@@ -54,7 +54,7 @@ while True:
             continue
         end = time.perf_counter() * 1000
         connectime = round(Decimal(end), 2) - round(Decimal(start), 2)
-        print('Connected to '+iporfqdn+':'+str(tcport)+' tcp_seq='+str(ping_count)+' time='+str(connectime)+' ms')
+        print('Pinged '+iporfqdn+':'+str(tcport)+' tcp_seq='+str(ping_count)+' time='+str(connectime)+' ms')
         s.close()
         times.append(connectime)
         time.sleep(1)
